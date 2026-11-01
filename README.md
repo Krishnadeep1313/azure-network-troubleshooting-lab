@@ -1,3 +1,6 @@
+## Project Overview
+
+This repository documents a hands-on lab focused on designing, securing, and troubleshooting a segmented virtual network in Microsoft Azure. The scenario simulates a real-world security incident where inbound SSH communication between a public-facing subnet and a private backend subnet is blocked. Using Azure Network Watcher diagnostics (IP Flow Verify and Connection Troubleshoot), the root cause was isolated to an misconfigured Network Security Group (NSG) rule and successfully repaired to restore secure, segmented communication.
 # Security Incident Report: Resolving Azure NSG Block
 
 ## 1. Planned Network Architecture Sketch
