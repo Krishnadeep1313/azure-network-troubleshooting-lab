@@ -103,3 +103,31 @@ To practice strong cloud financial hygiene and prevent any unnecessary charges o
   ```bash
   az group delete --name rg-aznet-troubleshoot --yes --no-wait
   ```
+## 8. Secret Mission: Diagnosing a Source-Side Block
+
+To understand how source-side outbound security boundaries behave differently from destination-side inbound rules, we conducted an egress troubleshooting scenario:
+
+### Scenario Setup
+1. **Egress Boundary:** Created a new Network Security Group named `nsg-frontend` and associated it with the source subnet `snet-frontend`.
+2. **Outbound Rule:** Configured a custom outbound security rule named `Deny-SSH-To-Backend`:
+   * **Destination Address Range:** `10.0.2.0/24` (Private Backend Subnet)
+   * **Destination Port:** `22` (SSH)
+   * **Protocol:** `TCP`
+   * **Action:** `Deny`
+   * **Priority:** `100`
+
+### Diagnostic Execution & Evidence
+* **Diagnostic Tool:** `IP Flow Verify` (Azure Network Watcher)
+* **Traffic Flow:** Outbound from `vm-frontend` (Source IP: `10.0.1.4`) to `vm-backend` (Destination IP: `10.0.2.4`) on Port 22
+* **Initial Test Result:** **Access denied** (Matched Security Rule: `Deny-SSH-To-Backend`)
+* **Source-Side Proof:** Since this check evaluated traffic in the **Outbound** direction on the source virtual machine, the diagnostic proves that the packet was blocked and dropped at the egress of `snet-frontend` before ever reaching the backend subnet. The backend's inbound rules were never evaluated because the flow failed at the source.
+* **Outbound Diagnostic Block Evidence:**
+
+![Source-Side Deny Status](./source%20side.png)
+
+### Resolution & Final Validation
+* **Remediation Action:** Modified the rule action for `Deny-SSH-To-Backend` inside `nsg-frontend` from **Deny** to **Allow**.
+* **Post-Remediation Check:** Re-ran the outbound IP Flow Verify diagnostic, which returned **Access allowed** status, proving secure communication is fully restored at the source boundary.
+* **Outbound Diagnostic Allowed Evidence:**
+
+![Source-Side Allowed Status](./network%20allow.png)
